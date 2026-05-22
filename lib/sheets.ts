@@ -91,13 +91,17 @@ export async function updateActionPlan(
     requestBody: { values: [[actionPlan, now, salesName]] },
   })
 
-  // Append to Log sheet (create sheet named "Log" if not exists)
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: 'Log!A:E',
-    valueInputOption: 'USER_ENTERED',
-    requestBody: { values: [[now, model, salesName, oldActionPlan, actionPlan]] },
-  })
+  // Append to Log sheet (silently skip if "Log" sheet doesn't exist yet)
+  try {
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: 'Log!A:E',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [[now, model, salesName, oldActionPlan, actionPlan]] },
+    })
+  } catch {
+    // Log sheet not created yet — ignore
+  }
 }
 
 export async function getLog(): Promise<LogEntry[]> {
